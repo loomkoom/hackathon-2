@@ -66,6 +66,6 @@ class Model:
 model = Model('data/r1_r2_annotations_liwc_h.xlsx')
 model.prepare_data() 
 model.train_randomforest()
-for _ in range(15):
+for _ in range(len(model.df)-1):
     i = random.randint(0, len(model.df)-1)
     print(model.predict(i))
