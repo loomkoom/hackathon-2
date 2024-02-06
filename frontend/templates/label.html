@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon 2</title>
+    <!-- Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .table-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .big-container{
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .text-to-show {
+            max-width: 600px;
+            overflow-x: scroll;
+            white-space: nowrap;
+        }
+
+    </style>
+</head>
+<body class="container" onload="clean()">
+    
+    <div class="big-container">
+        <h1 class="mb-4">Hackathon 2</h1>
+        <form action="/export" method="post">
+            <div class="table-container">
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Unlabeled Text</th>
+                            <th>PP (Personal Panic)</th>
+                            <th>PO (Panic - Other)</th>
+                            <th>UN (Unrelated)</th>
+                            <th>Majority Vote</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for text,labels in data %}
+                            <tr>
+                                <td  class="text-to-show">{{ labels.text }}</td>
+                                <input type="hidden" name="{{ labels.row_index }}_text" value="{{ labels.text }}">
+
+                                <!--
+                                    ADD HERE in this format <input type="hidden" name="{{ labels.row_index }}_[campo]" value="{{ [value] }}">
+                                -->
+
+                                <td class="radio-container">
+                                    <input 
+                                        {% if labels.label_1 %}checked{% endif %}
+                                        class="center-radio"
+                                        type="radio"  
+                                        name="{{ labels.row_index }}_label" 
+                                        value="PP">
+                                </td>
+                                <td class="radio-container">
+                                    <input  
+                                        {% if labels.label_2 %}checked{% endif %}
+                                        class="center-radio"
+                                        type="radio"
+                                        name="{{ labels.row_index }}_label"
+                                        value="PO">
+                                </td>
+                                <td class="radio-container">
+                                    <input 
+                                        {% if labels.label_3 %}checked{% endif %}
+                                        class="center-radio"
+                                        type="radio"
+                                        name="{{ labels.row_index }}_label"
+                                        value="UN">
+                                </td>
+                                <td>
+                                    <b>{{ labels.majority_vote }}</b>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon1">Filename</span>
+                <input required type="text" class="form-control" placeholder="Filename" name="filename">
+                <button type="submit" class="btn btn-outline-secondary" type="button" id="button-addon2">Export</button>
+            </div>
+        </form>
+    </div>
+
+    
+    
+    <!-- Bootstrap JS and Popper.js scripts (required for some Bootstrap components) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <script>
+
+        function clean(){
+            let elements = document.querySelectorAll('.text-to-show');
+            for (let element of elements){
+                let text = element.innerHTML;
+                //beautify text here
+                element.innerHTML = text;
+            }
+        }
+
+        document.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(e.target);
+            const response = await fetch('/export', {
+                method: 'POST',
+                body: data
+            });
+            const result = await response.json();
+        
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Data saved',
+                    text: 'With name ' + result.filename,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error saving data',
+                    text: result.error,
+                });
+            }
+        });        
+    </script>
+</body>
+</html>
